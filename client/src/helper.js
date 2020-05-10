@@ -1,0 +1,1 @@
+<Button variant="btn btn-success" onClick={() => history.push('/Proposal', { account: this.state.accounts, balance : this.state.storageValue})}>Click button to view Proposal</Button>
