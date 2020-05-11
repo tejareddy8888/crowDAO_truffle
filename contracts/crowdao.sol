@@ -16,15 +16,6 @@ constructor() public {
         
 // Bank and Amount transfer in ETH 
 
-            modifier CheckBalance{
-                require(accounts[msg.sender].balance >= 10, "You cannot perform this actions as you have insufficient balance");
-                _;
-            }
-        
-            modifier onlyAcccountHolder {
-                require(accounts[msg.sender].maddress == msg.sender, "You cannot perform this actions as you are not a member");
-                _;
-            }
 
         function selfAdd(uint256 value) external returns(uint256) {
                 require(value > 10, "Deposit shall be greater than 10 Ether");
@@ -47,7 +38,7 @@ constructor() public {
                return true;
             } 
             
-        function BalanceOfchairperson() external view returns(uint){
+        function BalanceOfchairperson() external view returns(uint256){
                 return chairperson.balance;
             }
         
@@ -61,17 +52,15 @@ constructor() public {
         function Transfer(address payable  _to,  uint _value)  public  payable{
                 require(accounts[chairperson].balance >= _value,"Chairman does not have funds with ");
                      accounts[chairperson].balance -= _value;
-                    //accounts[_to].balance += _value;
+                    accounts[_to].balance -= _value;
                     _to.transfer(_value);
             }        
-        function ProposalFundBlock(uint256 _proposalIndex) public  
+        function ProposalFundBlock(uint256 _proposalIndex, address memaddr) public  
             {
-                uint256 len = proposals[_proposalIndex].votedMembers.length;
                 uint256 value =  ComputeTotalShare(_proposalIndex);
-                for(uint256 i=0;i<=len;i++)
-                {
-                    Transfer(payable(proposals[_proposalIndex].votedMembers[i]),value);
-                }
+                Transfer(payable(memaddr),value);
+                accounts[memaddr].balance -= value;
+                
             }
             
                 function refundFunds(uint256 proposalIndex) public returns(bool)
@@ -92,6 +81,20 @@ constructor() public {
                     return true;
                 }
             
+            modifier CheckBalance{
+                require(accounts[msg.sender].balance >= 10, "You cannot perform this actions as you have insufficient balance");
+                _;
+            }
+        
+            modifier onlyAcccountHolder {
+                require(accounts[msg.sender].maddress == msg.sender, "You cannot perform this actions as you are not a member");
+                _;
+            }
+            modifier checkProposalValue(uint256 value){
+                //checkProposalValue(_proposalworth) 
+                require(value >  accounts[chairperson].balance, "You cannot perform this actions as you are not a member");
+                _;
+            }
             
 function addProposal(string memory _proposalname , uint256  _proposalworth) onlyAcccountHolder public returns(bool){
         /*
@@ -191,7 +194,7 @@ function FetchProposalIndex(string memory _proposalname , uint256  _proposalwort
          } else if (vote == Vote.No) {
             proposals[proposalIndex].noVotes += 1;
          }
-         
+         ProposalFundBlock(proposalIndex,msg.sender);
          emit SubmitVote(proposalIndex, msg.sender, memberAddress, uintVote);
      }
     

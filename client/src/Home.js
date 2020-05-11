@@ -39,6 +39,18 @@ class Home extends Component {
     }
   };
 
+  Balanceofchairman= async () => {
+    const {contract} = this.state;
+
+    // Stores a given value, 15 by default.
+    //await contract.methods.selfAdd(15).send({from: accounts[0]});
+
+    // Get the value from the contract to prove it worked.
+    const response = await contract.methods.BalanceOfchairperson().call();
+    console.log(response);
+  };
+
+
   getBalance= async () => {
     const { accounts, contract } = this.state;
 
@@ -53,24 +65,56 @@ class Home extends Component {
   };
 
   runSelfAdd = async () => {
-    const { accounts, contract } = this.state;
-    const amount = document.getElementById('mamount').value;
+    const { accounts, contract, web3 } = this.state;
+    var amount = document.getElementById('mamount').value;
     //console.log("Displaying the amount from the text:"+amount);
     //console.log(typeof amount);
     // Stores a given value, 15 by default.
-    await contract.methods.selfAdd(amount).send({from: accounts[0]});
+    amount = web3.utils.toWei(amount, 'ether');
+    await contract.methods.invest().send({from: accounts[0],value : amount});
     const response = await contract.methods.getBalance(accounts[0]).call();
 
     // Update state with the result.
     this.setState({ storageValue: response });
   };
 
+  handleUpdate = async() =>{
+    try{
+      const web3 = await getWeb3();
+      const accounts =  await web3.eth.getAccounts();
+  
+      // Get the contract instance.
+      const networkId = await web3.eth.net.getId();
+  
+      console.log("Accounts are:"+ accounts);
+  
+      const deployedNetwork = CrowDAO.networks[networkId];
+      const instance = new web3.eth.Contract(CrowDAO.abi, deployedNetwork && deployedNetwork.address);
+      //console.log("instance:" + deployedNetwork.address);
+  
+      // Set web3, accounts, and contract to the state, and then proceed with an
+      // example of interacting with the contract's methods.
+      this.setState({ web3, accounts, contract: instance }, this.getBalance);
+      //console.log("Contracts:"+contract);
+    } 
+    
+    catch (error) {
+      // Catch any errors for any of the above operations.
+      alert(
+        `Failed to load web3, accounts, or contract. Check console for details.`,
+      );
+      console.error(error);
+    }
+  };
+
+
   render() {
-    ///const log_e = this.state;
+    
     if (!this.state.web3) {
       return (<div>Loading Web3, accounts, and contract...</div>);
     } else if(this.state.storageValue >= 100 & this.state.accounts != "0x9a9FF10B5034348944bfc62fdFd2d7E7fa8A5a90")
     {
+      window.ethereum.on('accountsChanged', this.handleUpdate);
       return(
       <div className="App">
         <h1>Welcome to CrowDAO!</h1>
@@ -87,6 +131,7 @@ class Home extends Component {
     }
     else if(this.state.accounts == "0x9a9FF10B5034348944bfc62fdFd2d7E7fa8A5a90")
     {
+      window.ethereum.on('accountsChanged', this.handleUpdate);
       return(
       <div className="App">
         <h1>Welcome to CrowDAO!</h1>
@@ -103,6 +148,7 @@ class Home extends Component {
     }
     else
     {
+      window.ethereum.on('accountsChanged', this.handleUpdate);
     return (
       <div className="App">
         <h1>Welcome to CrowDAO!</h1>
@@ -121,6 +167,9 @@ class Home extends Component {
             );
     }
   }
+
+
 }
+
 
 export default Home;
