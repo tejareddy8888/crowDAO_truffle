@@ -7,7 +7,7 @@ import history from './history';
 import "./App.css";
 
 class Home extends Component {
-  state = { storageValue: 0, web3: null, accounts: null, contract: null, addamount: 0 };
+  state = { storageValue: 0, web3: null, accounts: null, contract: null, addamount: 0 , ChairMen_balance : 0 };
 
   componentDidMount = async () => {
     try {
@@ -40,28 +40,33 @@ class Home extends Component {
   };
 
   Balanceofchairman= async () => {
-    const {contract} = this.state;
+    const {accounts,contract} = this.state;
 
     // Stores a given value, 15 by default.
     //await contract.methods.selfAdd(15).send({from: accounts[0]});
-
+    var output;
     // Get the value from the contract to prove it worked.
-    const response = await contract.methods.BalanceOfchairperson().call();
-    console.log(response);
+    await contract.methods.BalanceOfchairperson().call({from: accounts[0]}).then(function(response){output = response;});
+    console.log(output)
+    return output;
   };
 
 
   getBalance= async () => {
-    const { accounts, contract } = this.state;
+    const { web3,accounts, contract } = this.state;
 
     // Stores a given value, 15 by default.
     //await contract.methods.selfAdd(15).send({from: accounts[0]});
 
     // Get the value from the contract to prove it worked.
-    const response = await contract.methods.getBalance(accounts[0]).call();
-
+    var value = await contract.methods.getBalance(accounts[0]).call();
+    value = web3.utils.fromWei(value, 'ether');
+    var output;
+    // Get the value from the contract to prove it worked.
+    await contract.methods.BalanceOfchairperson().call({from: accounts[0]}).then(function(response){output = response;});
     // Update state with the result.
-    this.setState({ storageValue: response });
+    output = web3.utils.fromWei(output, 'ether');
+    this.setState({ storageValue: value, ChairMen_balance : output});
   };
 
   runSelfAdd = async () => {
@@ -107,12 +112,16 @@ class Home extends Component {
     }
   };
 
+  dosomething  = async () => {
+    console.log("attempted capturing message");
+  };
+
 
   render() {
-    
+    window.ethereum.on('message',this.dosomething);
     if (!this.state.web3) {
       return (<div>Loading Web3, accounts, and contract...</div>);
-    } else if(this.state.storageValue >= 100 & this.state.accounts != "0x9a9FF10B5034348944bfc62fdFd2d7E7fa8A5a90")
+    } else if(this.state.storageValue >= 1 & this.state.accounts != "0x65a70817bebF1cF6C72eF01840Eb33d95cbd1015")
     {
       window.ethereum.on('accountsChanged', this.handleUpdate);
       return(
@@ -129,7 +138,7 @@ class Home extends Component {
       </div>
       );
     }
-    else if(this.state.accounts == "0x9a9FF10B5034348944bfc62fdFd2d7E7fa8A5a90")
+    else if(this.state.accounts == "0x65a70817bebF1cF6C72eF01840Eb33d95cbd1015")
     {
       window.ethereum.on('accountsChanged', this.handleUpdate);
       return(
@@ -154,7 +163,7 @@ class Home extends Component {
         <h1>Welcome to CrowDAO!</h1>
         <p>Your decentralized autonomous organization</p>
         <p>
-          For successful registration, your account {this.state.accounts} needs to register with 100 ETH value.
+          For successful registration, your account {this.state.accounts} needs to register with 1 ETH value.
         </p>
         <div>The current stored value is: {this.state.storageValue}</div>
         <div>

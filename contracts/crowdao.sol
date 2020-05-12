@@ -42,7 +42,7 @@ constructor() public {
                 return chairperson.balance;
             }
         
-        function BalanceOfmember(address payable _member) external view returns(uint){
+        function MembersWalletBalance(address payable _member) external view returns(uint){
                 return address(_member).balance;
             }
             
@@ -52,34 +52,47 @@ constructor() public {
         function Transfer(address payable  _to,  uint _value)  public  payable{
                 require(accounts[chairperson].balance >= _value,"Chairman does not have funds with ");
                      accounts[chairperson].balance -= _value;
-                    accounts[_to].balance -= _value;
+                    //accounts[_to].balance += _value;
                     _to.transfer(_value);
             }        
-        function ProposalFundBlock(uint256 _proposalIndex, address memaddr) public  
+        function ProposalFundBlock(uint256 _proposalIndex) public  
             {
                 uint256 value =  ComputeTotalShare(_proposalIndex);
-                Transfer(payable(memaddr),value);
-                accounts[memaddr].balance -= value;
+                uint256 len = proposals[proposalIndex].votedMembers.length;
+                if(len > 0){
+                    for (uint i=0; i<len-1; i++) {
+                        if(accounts[proposals[proposalIndex].votedMembers[i]].balance >= value) {
+                        //accounts[chairperson].balance += value;
+                        accounts[proposals[proposalIndex].votedMembers[i]].balance -= value;
+                    }  
+                
+                }
+                }
                 
             }
+        
+        function isProposer(uint256 _proposalIndex) public view returns(bool) {
+           return proposals[_proposalIndex].proposer == msg.sender;
+        }
             
-                function refundFunds(uint256 proposalIndex) public returns(bool)
-                {
-                    address payable sender = proposals[proposalIndex].proposer;
-                    uint256 value =  proposals[proposalIndex].proposalvalue;
-                    uint256 len = proposals[proposalIndex].votedMembers.length;
-                        if(len > 0){
-                            for (uint i=0; i<len-1; i++) {
-                                if(accounts[sender].balance >= value) {
-                                accounts[sender].balance -= value;
-                                accounts[proposals[proposalIndex].votedMembers[i]].balance += value;
-                            }  
-                        
-                        }
-                    
-                    }
-                    return true;
+        function refundFunds(uint256 proposalIndex) public returns(bool)
+        {
+            uint256 value = ComputeTotalShare(proposalIndex);
+            uint256 len = proposals[proposalIndex].votedMembers.length;
+                if(len > 0){
+                    for (uint i=0; i<len-1; i++) {
+                        if(accounts[chairperson].balance >= value) {
+                        //accounts[chairperson].balance -= value;
+                        accounts[proposals[proposalIndex].votedMembers[i]].balance += value;
+                    }  
+                
                 }
+            
+            }
+            return true;
+        }
+    
+
             
             modifier CheckBalance{
                 require(accounts[msg.sender].balance >= 10, "You cannot perform this actions as you have insufficient balance");
@@ -101,11 +114,12 @@ function addProposal(string memory _proposalname , uint256  _proposalworth) only
               function Adds Proposals based on the condition of the only if he is a member of the network.
               takes Proposal string and proposal worth value as input.
         */
-     proposalIndex +=1;
+
      proposals.push(Proposal({uid : proposalIndex,
                               name: _proposalname,
                               proposalvalue: _proposalworth,
                               startingPeriod: now,
+                              startingPeriodFinal:0,
                               yesVotes:0,
                               yesPostVotes:0,
                               noVotes:0,
@@ -118,11 +132,20 @@ function addProposal(string memory _proposalname , uint256  _proposalworth) only
                               votedMembers: arr
                     
      }));  
+     proposalIndex +=1;
      emit SubmitProposal(proposalIndex,msg.sender,_proposalworth);
      return true;
     }
     
-function proposalCount() public view returns(uint) { return proposals.length; }
+function getProposalCount() public view returns(uint256) {  return proposals.length;}
+
+function didProposalPass(uint256 _proposalIndex) public view returns(bool) { return  proposals[_proposalIndex].didPass;}
+
+function didProposalFinalPass(uint256 _proposalIndex) public view returns(bool) { return  proposals[_proposalIndex].didfinalPass;}
+
+function didProposalProcessed(uint256 _proposalIndex) public view returns(bool) { return  proposals[_proposalIndex].processed;}
+
+function didProposalAborted(uint256 _proposalIndex) public view returns(bool) { return  proposals[_proposalIndex].aborted;}
 
 
 function FetchProposalIndex(string memory _proposalname , uint256  _proposalworth) public view returns (uint256){
@@ -133,18 +156,23 @@ function FetchProposalIndex(string memory _proposalname , uint256  _proposalwort
             }
     }
 
-    function getProposalByIndex(uint256  _index) public view returns (uint256,  string memory, uint256, uint256, uint256, bool, address){
+function getProposalByIndex(uint256  _index) public view returns (uint256,  string memory, uint256, uint256, uint256, bool, address){
         
         
             return(proposals[_index].uid , proposals[_index].name, proposals[_index].proposalvalue, proposals[_index].yesVotes, proposals[_index].noVotes, proposals[_index].didPass, proposals[_index].proposer);
             
     }
 
-    function getProposalCount() public view returns(uint count) 
-    { return proposals.length;
+function getProposalByIndex2(uint256  _index) public view returns (uint256,  string memory, uint256, bool, uint256, uint256){
+        
+        
+            return(proposals[_index].uid , proposals[_index].name, proposals[_index].proposalvalue, proposals[_index].processed, proposals[_index].yesPostVotes, proposals[_index].noPostVotes);
+            
     }
 
-    function hasProposalPassed(uint256 _proposalIndex) public returns (bool){
+
+
+function hasProposalPassed(uint256 _proposalIndex) public returns (bool){
      // This function checks if the particular proposal passed or fail by 60% percentage cutoff.     
      uint256 sum_votes = proposals[_proposalIndex].yesVotes + proposals[_proposalIndex].noVotes;
      if((proposals[_proposalIndex].yesVotes/ sum_votes)* 100 >= (60))
@@ -154,11 +182,33 @@ function FetchProposalIndex(string memory _proposalname , uint256  _proposalwort
      {  proposals[_proposalIndex].didPass = false;
         return false;}
     }
+
+function hasProposalPassedFinal(uint256 _proposalIndex) public returns (bool){
+     // This function checks if the particular proposal passed or fail by 60% percentage cutoff.     
+     //uint256 sum_votes = proposals[_proposalIndex].yesVotes + proposals[_proposalIndex].noVotes;
+     //if((proposals[_proposalIndex].yesVotes/ sum_votes)* 100 >= (60))
+     if(proposals[_proposalIndex].yesPostVotes > proposals[_proposalIndex].noPostVotes)
+        {proposals[_proposalIndex].didfinalPass = true; 
+        return true;}
+     else
+     {  proposals[_proposalIndex].didfinalPass = false;
+        return false;}
+    }
+function fetchBlockNumber() public view returns(uint256)
+{
+    return block.number;
+}
     
-    function hasVotingPeriodExpired(uint256 _proposalIndex) public view returns (bool) {
+function hasVotingPeriodExpired(uint256 _proposalIndex) public view returns (bool) {
         //This function checks for the voting period expiration for the proposal for 20 sec
         uint256 start = proposals[_proposalIndex].startingPeriod;
-        return (now - start) >= 20;
+        return (now - start)>= 20;
+    }
+
+function hasVotingPeriodExpiredFinal(uint256 _proposalIndex) public view returns (bool) {
+        //This function checks for the voting period expiration for the proposal for 60 sec
+        uint256 start = proposals[_proposalIndex].startingPeriodFinal;
+        return (now - start) >= 60;
     }
     
     function ComputeTotalShare(uint256 _proposalIndex) public view returns(uint256){
@@ -171,8 +221,6 @@ function FetchProposalIndex(string memory _proposalname , uint256  _proposalwort
         
     }
     
-     
-
     function submitVote(uint256 proposalIndex, uint8 uintVote) public {
     //    Member storage member = members[msg.sender];
          address memberAddress = msg.sender;
@@ -181,8 +229,8 @@ function FetchProposalIndex(string memory _proposalname , uint256  _proposalwort
 
     //     //require(getCurrentPeriod() >= proposal.startingPeriod, "Moloch::submitVote - voting period has not started");
     //     //require(!hasVotingPeriodExpired(proposal.startingPeriod), "Moloch::submitVote - proposal voting period has expired");
-         require(proposals[proposalIndex].votesByMember[memberAddress] == Vote.Null, "Moloch::submitVote - member has already voted on this proposal");
-         require(vote == Vote.Yes || vote == Vote.No, "Moloch::submitVote - vote must be either Yes or No");
+         require(proposals[proposalIndex].votesByMember[memberAddress] == Vote.Null, "submitVote - member has already voted on this proposal");
+         require(vote == Vote.Yes || vote == Vote.No, "submitVote - vote must be either Yes or No");
         // store vote
          proposals[proposalIndex].votesByMember[memberAddress] = vote;
          proposals[proposalIndex].votedMembers.push(memberAddress);
@@ -194,23 +242,40 @@ function FetchProposalIndex(string memory _proposalname , uint256  _proposalwort
          } else if (vote == Vote.No) {
             proposals[proposalIndex].noVotes += 1;
          }
-         ProposalFundBlock(proposalIndex,msg.sender);
+         //ProposalFundBlock(proposalIndex,msg.sender);
          emit SubmitVote(proposalIndex, msg.sender, memberAddress, uintVote);
      }
+     
+    
+    function proposerCompleteVote(uint256 p_Index,uint256 voteIndex)  public 
+    {
+        if (voteIndex==1) {
+            proposals[p_Index].processed = true;
+            proposals[p_Index].aborted = false;
+            proposals[p_Index].startingPeriodFinal = now;
+        }
+        else
+        {
+            proposals[p_Index].aborted = true;
+            proposals[p_Index].processed = false;   
+            proposals[p_Index].startingPeriodFinal = now;
+        }
+
+    }
     
 
     function submitPassedVote(uint256 proposalIndex, uint8 uintVote) public {
         //This function 
          address memberAddress = msg.sender;
          Vote postVote = Vote(uintVote);
-         require(proposals[proposalIndex].votesByMember[memberAddress] == Vote.Null, "Moloch::submitVote - member has already voted on this proposal");
-         
+        // require(proposals[proposalIndex].votesByMember[memberAddress] == Vote.Null, "Moloch::submitVote - member has already voted on this proposal");
 
     //    Adding counts to respective Yes or No
          if (postVote == Vote.Yes) {
             proposals[proposalIndex].yesPostVotes  += 1;
 
-         } else if (postVote == Vote.No) {
+         } 
+         else if (postVote == Vote.No) {
             proposals[proposalIndex].noPostVotes += 1;
          }
          

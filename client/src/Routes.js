@@ -5,6 +5,7 @@ import Home from "./Home";
 import Proposal from "./Proposal";
 import AcceptProposal from "./AcceptProposal";
 import ReviewProposal from "./ReviewProposal";
+import MyProposal from "./MyProposal";
 import history from './history';
 
 
@@ -18,6 +19,7 @@ export default class Routes extends Component {
                     <Route path="/Proposal" component={Proposal} />
                     <Route path="/AcceptProposal" component={AcceptProposal} />
                     <Route path="/ReviewProposal" component={ReviewProposal} />
+                    <Route path="/MyProposal" component={MyProposal} />
                 </Switch>
             </Router>
         )

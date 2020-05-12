@@ -9,8 +9,8 @@ import Web3 from "web3";
 
 class Proposal extends Component {
 
-	state = { accounts: null , contract: null};
-	//state = { storageValue: 0, web3: null, accounts: null, contract: null };
+	//state = { accounts: null , contract: null};
+	state = { storageValue: 0, web3: null, accounts: null, contract: null };
   
   
 
@@ -22,8 +22,8 @@ class Proposal extends Component {
       console.log('entered reload before');
       const web3 = await getWeb3();
 
-      const account = await web3.eth.getAccounts();
-      console.log('account intialised'+account);
+      const accounts = await web3.eth.getAccounts();
+      console.log('account intialised'+accounts);
       // Get the contract instance.
       const networkId = await web3.eth.net.getId();
       console.log('networkId intialised'+networkId);
@@ -34,7 +34,7 @@ class Proposal extends Component {
 
       // Set web3, accounts, and contract to the state, and then proceed with an
       // example of interacting with the contract's methods.
-      this.setState({ accounts : account, contract: instance});
+      this.setState({ web3, accounts, contract: instance }, this.getBalance);
       //console.log("Contracts :"+this.state.contract);
       //this.interval = setInterval(() => this.setState({ time: new Date.now() }), 5000);
     } catch (error) {
@@ -45,10 +45,22 @@ class Proposal extends Component {
       );
       console.error(error);
     	}
-  	};
+    };
 
+    getBalance= async () => {
+      const { web3,accounts, contract } = this.state;
+  
+      // Stores a given value, 15 by default.
+      //await contract.methods.selfAdd(15).send({from: accounts[0]});
+  
+      // Get the value from the contract to prove it worked.
+      var value = await contract.methods.getBalance(accounts[0]).call();
+      value = web3.utils.fromWei(value, 'ether');
+      // Update state with the result.
+      this.setState({ storageValue: value });
+    };
 
-	addProposalFunc = async () => {
+addProposalFunc = async () => {
     //this.reload();
     //console.log('reloaded');
     //window.location.reload();
@@ -59,11 +71,13 @@ class Proposal extends Component {
     const proposal_name = document.getElementById('proptext').value;
     const proposal_val = document.getElementById('propval').value;
     //var respo;
-
+    console.log("proposal:"+ proposal_name + "value" + proposal_val );
     //console.log("Contract :"+contract);
     // Stores a given value, 15 by default.
     if(proposal_name !== '' && proposal_val !== ''){
-    	await contract.methods.addProposal(proposal_name, proposal_val).send({from: accounts[0]});
+      console.log("tried to trigger");
+      await contract.methods.addProposal(proposal_name, proposal_val).send({from: accounts[0]});
+      console.log("triggered");
     	document.getElementById('proptext').value = '';
     	document.getElementById('propval').value = '';
     	}
@@ -75,39 +89,38 @@ class Proposal extends Component {
 
 
 
-  	showProposalList = async () => {
+showProposalList = async () => {
     //this.setState({ accounts: null });
     const { accounts, contract } = this.state;
     //console.log("Contract in Function:"+ contract);
-    
-
-    var respo;
-    var passedResp;
-    var fitresp;
-    var unfitResp;
+  
+    var Proprespo;
+    var TimeResp;
     var propLength;
-    //var propPassed;
+    var propPassed;
     var i;
     
     await contract.methods.getProposalCount().call().then(function(response){ propLength = response;});
-    //console.log(propLength);
+    console.log(propLength);
     //This loop only display the active proposals only.
-    for(i=0;i<=propLength-1;i++){
-    	await contract.methods.hasVotingPeriodExpired(i).call().then(function(response1){ passedResp = response1;});
-    	await contract.methods.getProposalByIndex(i).call().then(function(response){ respo = response;});
-    	//await contract.methods.hasProposalPassed(i).call().then(function(response){ passedResp = response;});
-    	//console.log(passedResp);
-    	if(passedResp == false)
+    for(i=0;i<=propLength-1;i++)
+    {
+      console.log(i)
+    	await contract.methods.hasVotingPeriodExpired(i).call({from: accounts[0]}).then(function(response){ TimeResp = response;});
+      await contract.methods.getProposalByIndex(i).call().then(function(response){ Proprespo = response;});
+      //await contract.methods.hasProposalPassed(i).call().then(function(response){ propPassed = response;});
+      console.log("for index i "+i+" the proposalName is "+Proprespo[1]+" expired its time "+TimeResp);
+    	if(TimeResp == false)
     	{
     	var newRow=document.getElementById('myTable').insertRow();
     	var cell1   = newRow.insertCell(0);
-		  cell1.appendChild(document.createTextNode(respo[0]));
+		  cell1.appendChild(document.createTextNode(Proprespo[0]));
 		// Insert a cell in the row at cell index 1
   		var cell2   = newRow.insertCell(1);
 
-  		cell2.appendChild(document.createTextNode(respo[1]));
+  		cell2.appendChild(document.createTextNode(Proprespo[1]));
   		var cell3   = newRow.insertCell(2);
-  		cell3.appendChild(document.createTextNode(respo[2]));
+  		cell3.appendChild(document.createTextNode(Proprespo[2]));
 
 
   		//Yes button for Vote
@@ -116,7 +129,7 @@ class Proposal extends Component {
   		button.innerHTML = 'Yes';
   		button.onclick = this.voteAdd;
   		//button.id = "yesbutton";
-  		button.value = i;
+  		button.value = Proprespo[0];
   		cell4.appendChild(button);
 
 
@@ -127,79 +140,112 @@ class Proposal extends Component {
   		button.innerHTML = 'No';
   		button.onclick = this.voteAdd;
   		//button.id = "nobutton";
-  		button.value = i;
+  		button.value = Proprespo[0];
   		cell5.appendChild(button);
-  		}
-    }	
+      }
+      
 
-    //This loop only represent the Passed proposals
-    for(i=0;i<=propLength-1;i++){
-    	await contract.methods.hasVotingPeriodExpired(i).call().then(function(response1){ passedResp = response1;});
-    	await contract.methods.getProposalByIndex(i).call().then(function(response){ fitresp = response;});
       //await contract.methods.hasProposalPassed(i).call().then(function(response){ propPassed = response;});
-    	if(passedResp == true & fitresp[5] == false & (fitresp[3] > fitresp[4]))
+    	else if(TimeResp == true & Proprespo[5] == false & (Proprespo[3] > Proprespo[4]))
     	{
     	var newRow=document.getElementById('passTable').insertRow();
     	var cell1   = newRow.insertCell(0);
-		cell1.appendChild(document.createTextNode(fitresp[0]));
+		cell1.appendChild(document.createTextNode(Proprespo[0]));
 		// Insert a cell in the row at cell index 1
   		var cell2   = newRow.insertCell(1);
 
-  		cell2.appendChild(document.createTextNode(fitresp[1]));
+  		cell2.appendChild(document.createTextNode(Proprespo[1]));
   		var cell3   = newRow.insertCell(2);
-  		cell3.appendChild(document.createTextNode(fitresp[2]));
+  		cell3.appendChild(document.createTextNode(Proprespo[2]));
 
   		}
-		  	
-    }	
-
-    //This loop only represent the expired proposals
-    for(i=0;i<=propLength-1;i++){
-    	await contract.methods.hasVotingPeriodExpired(i).call().then(function(response1){ passedResp = response1;});
-    	await contract.methods.getProposalByIndex(i).call().then(function(response){ unfitResp = response;});
     	
-    	if(passedResp == true & unfitResp[4] >= unfitResp[3])
+    	else if(TimeResp == true & Proprespo[4] >= Proprespo[3])
     	{
     	var newRow=document.getElementById('failedTable').insertRow();
     	var cell1   = newRow.insertCell(0);
-		cell1.appendChild(document.createTextNode(unfitResp[0]));
+		cell1.appendChild(document.createTextNode(Proprespo[0]));
 		// Insert a cell in the row at cell index 1
   		var cell2   = newRow.insertCell(1);
 
-  		cell2.appendChild(document.createTextNode(unfitResp[1]));
+  		cell2.appendChild(document.createTextNode(Proprespo[1]));
   		var cell3   = newRow.insertCell(2);
-  		cell3.appendChild(document.createTextNode(unfitResp[2]));
+  		cell3.appendChild(document.createTextNode(Proprespo[2]));
 
-  		}
+      }
+
+      // else if(TimeResp == true & propPassed == false)
+    	// {
+      //   var newRow=document.getElementById('passTable').insertRow();
+      //   var cell1   = newRow.insertCell(0);
+      // cell1.appendChild(document.createTextNode(Proprespo[0]));
+      // // Insert a cell in the row at cell index 1
+      //   var cell2   = newRow.insertCell(1);
+
+      //   cell2.appendChild(document.createTextNode(Proprespo[1]));
+      //   var cell3   = newRow.insertCell(2);
+      //   cell3.appendChild(document.createTextNode(Proprespo[2]));
+
+  		// }
 		  	
     }	
-
+    console.log('completed my process')
     document.getElementById("myBtn").disabled = true; 
 
     //this.setState({ accounts: accounts[0] });
 };
 
-
 voteAdd = async (event) => {
     const { accounts, contract } = this.state;
     var vote_val = null;
     if(event.target.innerHTML == "Yes"){vote_val = 1;}
-    else {vote_val = 0;}
+    else {vote_val = 2;}
     var proposal_index = event.target.value;
-    
     console.log("Acounts :"+accounts[0]);
-
     //console.log("This is for testing purpose only."+ proposal_index+" : "+vote_val);
-    await contract.methods.submitVote(proposal_index, vote_val).send({from: accounts[0]});
-	};
+    await contract.methods.submitVote(proposal_index, vote_val).send({from: accounts[0]}).then(function(error,response){if(!error){console.log(response)} else {console.log(error)}});
+  };
+  
+handleUpdate = async() =>{
+    try{
+      console.log("trying to update the Accounts");
+      const web3 = await getWeb3();
+      const accounts =  await web3.eth.getAccounts();
+  
+      // Get the contract instance.
+      const networkId = await web3.eth.net.getId();
+  
+      console.log("Accounts are:"+ accounts);
+  
+      const deployedNetwork = CrowDAO.networks[networkId];
+      const instance = new web3.eth.Contract(CrowDAO.abi, deployedNetwork && deployedNetwork.address);
+      //console.log("instance:" + deployedNetwork.address);
+  
+      // Set web3, accounts, and contract to the state, and then proceed with an
+      // example of interacting with the contract's methods.
+      this.setState({ web3, accounts, contract: instance }, this.getBalance);
+
+      //console.log("Contracts:"+contract);
+      this.props.history.push('/')
+    } 
+    
+    catch (error) {
+      // Catch any errors for any of the above operations.
+      alert(
+        `Failed to load web3, accounts, or contract. Check console for details.`,
+      );
+      console.error(error);
+    }
+  };
+
 
 
     render() {
-        //window.location.reload();
+      window.ethereum.on('accountsChanged', this.handleUpdate);
         return (
             <div>
             	<h1>Create Proposal</h1>
-                <p>Your Account {this.props.location.state.account} have {this.props.location.state.balance} ETH balance</p>
+                <p>Your Account {this.state.accounts} have {this.state.storageValue} ETH balance</p>
                 <div>
                 	<h3>Create Proposal with the following details</h3>
                 	<label for="propname">Enter the proposal:</label>&nbsp;
@@ -208,7 +254,8 @@ voteAdd = async (event) => {
             		<input type="text" id="propval" name="propval" /><br />
             		<button onClick={this.addProposalFunc}> Create Proposal </button>
             		<button id="myBtn" onClick={this.showProposalList}> Show Proposal </button>
-                <Button variant="btn btn-success" onClick={() => history.push('/ReviewProposal', { account: this.state.accounts})}>Review your Proposal</Button>
+                <Button variant="btn btn-success" onClick={() => history.push('/ReviewProposal', { account: this.state.accounts})}>Vote Completed Proposals</Button>
+                <Button variant="btn btn-success" onClick={() => history.push('/MyProposal', { account: this.state.accounts})}>MyProposals</Button>
             	</div>
                 <div id= "container"> 
                 	<table id="myTable" border= "5"   width="50%"   cellpadding="4" cellspacing="3">	

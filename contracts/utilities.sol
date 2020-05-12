@@ -15,6 +15,7 @@ contract utilities {
         uint256 proposalvalue;
         address payable proposer; // the member who submitted the proposal
         uint256 startingPeriod; // the period in which voting can start for this proposal
+        uint256 startingPeriodFinal;
         uint256 yesVotes; // the total number of YES votes for this proposal
         uint256 yesPostVotes; //the total number of YES post approval votes
         uint256 noVotes; // the total number of NO votes for this proposal
