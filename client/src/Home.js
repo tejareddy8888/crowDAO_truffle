@@ -77,10 +77,10 @@ class Home extends Component {
     // Stores a given value, 15 by default.
     amount = web3.utils.toWei(amount, 'ether');
     await contract.methods.invest().send({from: accounts[0],value : amount});
-    const response = await contract.methods.getBalance(accounts[0]).call();
-
+    var value = await contract.methods.getBalance(accounts[0]).call();
+    value = web3.utils.fromWei(value, 'ether');
     // Update state with the result.
-    this.setState({ storageValue: response });
+    this.setState({ storageValue: value });
   };
 
   handleUpdate = async() =>{
@@ -118,12 +118,12 @@ class Home extends Component {
 
 
   render() {
-    window.ethereum.on('message',this.dosomething);
+    window.ethereum.on('accountsChanged', this.handleUpdate);
     if (!this.state.web3) {
       return (<div>Loading Web3, accounts, and contract...</div>);
-    } else if(this.state.storageValue >= 1 & this.state.accounts != "0x65a70817bebF1cF6C72eF01840Eb33d95cbd1015")
+    } else if(this.state.storageValue >= 1)
     {
-      window.ethereum.on('accountsChanged', this.handleUpdate);
+      
       return(
       <div className="App">
         <h1>Welcome to CrowDAO!</h1>
@@ -133,46 +133,54 @@ class Home extends Component {
         </p>
         <div>The current stored value is: {this.state.storageValue}</div>
         <form>
-          <Button variant="btn btn-success" onClick={() => history.push('/Proposal', { account: this.state.accounts, balance : this.state.storageValue})}>Click button to view Proposal</Button>
+          <Button class="btn" variant="btn btn-success" onClick={() => history.push('/Proposal', { account: this.state.accounts, balance : this.state.storageValue})}>Click button to view Proposal</Button>
         </form>
       </div>
       );
     }
-    else if(this.state.accounts == "0x65a70817bebF1cF6C72eF01840Eb33d95cbd1015")
-    {
-      window.ethereum.on('accountsChanged', this.handleUpdate);
-      return(
-      <div className="App">
-        <h1>Welcome to CrowDAO!</h1>
-        <p>Your decentralized autonomous organization</p>
-        <p>
-          Special registered account, your account ID is {this.state.accounts}.
-        </p>
-        <div>The current stored value is: {this.state.storageValue}</div>
-        <form>
-          <Button variant="btn btn-success" onClick={() => history.push('/AcceptProposal', { account: this.state.accounts, balance : this.state.storageValue })}>Click button to view Proposal</Button>
-        </form>
-      </div>
-      );
-    }
+    // else if(this.state.accounts == "0x65a70817bebF1cF6C72eF01840Eb33d95cbd1015")
+    // {
+    //   window.ethereum.on('accountsChanged', this.handleUpdate);
+    //   return(
+    //   <div className="App">
+    //     <h1>Welcome to CrowDAO!</h1>
+    //     <p>Your decentralized autonomous organization</p>
+    //     <p>
+    //       Special registered account, your account ID is {this.state.accounts}.
+    //     </p>
+    //     <div>The current stored value is: {this.state.storageValue}</div>
+    //     <form>
+    //       <Button variant="btn btn-success" onClick={() => history.push('/AcceptProposal', { account: this.state.accounts, balance : this.state.storageValue })}>Click button to view Proposal</Button>
+    //     </form>
+    //   </div>
+    //   );
+    // }
     else
     {
-      window.ethereum.on('accountsChanged', this.handleUpdate);
     return (
-      <div className="App">
-        <h1>Welcome to CrowDAO!</h1>
-        <p>Your decentralized autonomous organization</p>
-        <p>
-          For successful registration, your account {this.state.accounts} needs to register with 1 ETH value.
-        </p>
-        <div>The current stored value is: {this.state.storageValue}</div>
+  <div className="App">
+     <div class="center">
+          <h1> CROWDAO</h1>
+          <p>Your decentralized autonomous organization</p>
+      </div>
+      <div class="center">
+
         <div>
-          <h1>Enter the amount to be added in your account.</h1>
+          <h2>Enter the amount to be added in your account.</h2>
+            <div>Account : {this.state.accounts} </div>
+            <div> Current Balance: {this.state.storageValue} ETH </div>
+            <br/>
             <label for="maddr">Amount:</label>&nbsp;
-            <input type="text" id="mamount" name="mamount" />&nbsp;
-            <button onClick={this.runSelfAdd}>  ADD AMOUNT </button>
+            <input class="search-box" type="text" id="mamount" name="mamount" />&nbsp;
+            <br/>
+            <br/>
+            <button class="btn" onClick={this.runSelfAdd}>  ADD AMOUNT </button>
+    <br/>
+    <br/>
+    <small> <b> Note: your account needs to have minimum 1 ETH value </b> </small>
         </div> 
       </div>
+  </div>
             );
     }
   }

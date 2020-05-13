@@ -25,7 +25,8 @@
         }
       ],
       "stateMutability": "view",
-      "type": "function"
+      "type": "function",
+      "constant": true
     }
   ],
   "metadata": "{\"compiler\":{\"version\":\"0.6.6+commit.6c089d02\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"inputs\":[],\"name\":\"get\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"x\",\"type\":\"uint256\"}],\"name\":\"set\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"}],\"devdoc\":{\"methods\":{}},\"userdoc\":{\"methods\":{}}},\"settings\":{\"compilationTarget\":{\"/home/teja/Documents/BLCON/crowdao/contracts/SimpleStorage.sol\":\"SimpleStorage\"},\"evmVersion\":\"istanbul\",\"libraries\":{},\"metadata\":{\"bytecodeHash\":\"ipfs\"},\"optimizer\":{\"enabled\":true,\"runs\":200},\"remappings\":[]},\"sources\":{\"/home/teja/Documents/BLCON/crowdao/contracts/SimpleStorage.sol\":{\"keccak256\":\"0xc2159b9be968451f2fc7620e38577dd35ed99a13286085d788139b7ce1ce3fc1\",\"urls\":[\"bzz-raw://30392edeac20a70916dbb100fff759575930c2105465b289a88b684d32707947\",\"dweb:/ipfs/QmZAM17Wb2sN4Ew7DF9ZbxEBmFpUoEubH3RKJGaTHWheJK\"]}},\"version\":1}",
@@ -576,12 +577,13 @@
     "5777": {
       "events": {},
       "links": {},
-      "address": "0xf37d14bf1af105893dc54536418337DD898246cA",
-      "transactionHash": "0x08ec341e87fecd0fde417f5fea343a967c6459dd49ef09f659184d0593b99f0b"
+      "address": "0x9bd43fccA222084283d9107bDCb2f8AB1a2fa0Ff",
+      "transactionHash": "0xd3a8b7b1a845a1228aa96e59572bda2c100348433e8a55e69bcbdcbdd8aeb928"
     }
   },
   "schemaVersion": "3.1.0",
-  "updatedAt": "2020-05-12T14:37:44.422Z",
+  "updatedAt": "2020-05-13T13:47:59.942Z",
+  "networkType": "ethereum",
   "devdoc": {
     "methods": {}
   },

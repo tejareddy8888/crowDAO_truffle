@@ -147,14 +147,15 @@ function didProposalProcessed(uint256 _proposalIndex) public view returns(bool) 
 
 function didProposalAborted(uint256 _proposalIndex) public view returns(bool) { return  proposals[_proposalIndex].aborted;}
 
+function fetchProposalShare(uint256 _proposalIndex) public view returns(uint256) { return  ComputeTotalShare(_proposalIndex);}
 
-function FetchProposalIndex(string memory _proposalname , uint256  _proposalworth) public view returns (uint256){
+// function FetchProposalIndex(string memory _proposalname , uint256  _proposalworth) public view returns (uint256){
         
-        for (uint i=0; i<proposals.length; i++) {
-            if(keccak256(abi.encodePacked(proposals[i].name)) == keccak256(abi.encodePacked(_proposalname)) && proposals[i].proposalvalue == _proposalworth)
-            return(proposals[i].uid);
-            }
-    }
+//         for (uint i=0; i<proposals.length; i++) {
+//             if(keccak256(abi.encodePacked(proposals[i].name)) == keccak256(abi.encodePacked(_proposalname)) && proposals[i].proposalvalue == _proposalworth)
+//             return(proposals[i].uid);
+//             }
+//     }
 
 function getProposalByIndex(uint256  _index) public view returns (uint256,  string memory, uint256, uint256, uint256, bool, address){
         
@@ -162,11 +163,10 @@ function getProposalByIndex(uint256  _index) public view returns (uint256,  stri
             return(proposals[_index].uid , proposals[_index].name, proposals[_index].proposalvalue, proposals[_index].yesVotes, proposals[_index].noVotes, proposals[_index].didPass, proposals[_index].proposer);
             
     }
-
-function getProposalByIndex2(uint256  _index) public view returns (uint256,  string memory, uint256, bool, uint256, uint256){
+function getProposalByIndex2(uint256  _index) public view returns (uint256,  string memory, uint256, bool, uint256, uint256,address){
         
         
-            return(proposals[_index].uid , proposals[_index].name, proposals[_index].proposalvalue, proposals[_index].processed, proposals[_index].yesPostVotes, proposals[_index].noPostVotes);
+            return(proposals[_index].uid , proposals[_index].name, proposals[_index].proposalvalue, proposals[_index].processed, proposals[_index].yesPostVotes, proposals[_index].noPostVotes, proposals[_index].proposer);
             
     }
 
@@ -174,12 +174,19 @@ function getProposalByIndex2(uint256  _index) public view returns (uint256,  str
 
 function hasProposalPassed(uint256 _proposalIndex) public returns (bool){
      // This function checks if the particular proposal passed or fail by 60% percentage cutoff.     
-     uint256 sum_votes = proposals[_proposalIndex].yesVotes + proposals[_proposalIndex].noVotes;
-     if((proposals[_proposalIndex].yesVotes/ sum_votes)* 100 >= (60))
-        {proposals[_proposalIndex].didPass = true; 
-        return true;}
+     //uint256 sum_votes = proposals[_proposalIndex].yesVotes + proposals[_proposalIndex].noVotes;
+     //if((proposals[_proposalIndex].yesVotes/ sum_votes)* 100 >= (60))
+     if(proposals[_proposalIndex].yesVotes > proposals[_proposalIndex].noVotes)
+     {
+        proposals[_proposalIndex].didPass = true; 
+        ProposalFundBlock(_proposalIndex);
+        return true;
+            
+        }
      else
      {  proposals[_proposalIndex].didPass = false;
+        //ProposalFundBlock(_proposalIndex);
+        proposals[_proposalIndex].aborted = true;
         return false;}
     }
 
@@ -189,9 +196,12 @@ function hasProposalPassedFinal(uint256 _proposalIndex) public returns (bool){
      //if((proposals[_proposalIndex].yesVotes/ sum_votes)* 100 >= (60))
      if(proposals[_proposalIndex].yesPostVotes > proposals[_proposalIndex].noPostVotes)
         {proposals[_proposalIndex].didfinalPass = true; 
+        Transfer(proposals[_proposalIndex].proposer,proposals[_proposalIndex].proposalvalue);
         return true;}
      else
      {  proposals[_proposalIndex].didfinalPass = false;
+        proposals[_proposalIndex].aborted = true;
+        refundFunds(_proposalIndex);
         return false;}
     }
 function fetchBlockNumber() public view returns(uint256)
@@ -200,9 +210,9 @@ function fetchBlockNumber() public view returns(uint256)
 }
     
 function hasVotingPeriodExpired(uint256 _proposalIndex) public view returns (bool) {
-        //This function checks for the voting period expiration for the proposal for 20 sec
+        //This function checks for the voting period expiration for the proposal for 60 sec
         uint256 start = proposals[_proposalIndex].startingPeriod;
-        return (now - start)>= 20;
+        return (now - start) >= 60;
     }
 
 function hasVotingPeriodExpiredFinal(uint256 _proposalIndex) public view returns (bool) {
@@ -224,11 +234,9 @@ function hasVotingPeriodExpiredFinal(uint256 _proposalIndex) public view returns
     function submitVote(uint256 proposalIndex, uint8 uintVote) public {
     //    Member storage member = members[msg.sender];
          address memberAddress = msg.sender;
-    //     require(uintVote < 3, "Moloch::submitVote - uintVote must be less than 3");
         Vote vote = Vote(uintVote);
 
-    //     //require(getCurrentPeriod() >= proposal.startingPeriod, "Moloch::submitVote - voting period has not started");
-    //     //require(!hasVotingPeriodExpired(proposal.startingPeriod), "Moloch::submitVote - proposal voting period has expired");
+    
          require(proposals[proposalIndex].votesByMember[memberAddress] == Vote.Null, "submitVote - member has already voted on this proposal");
          require(vote == Vote.Yes || vote == Vote.No, "submitVote - vote must be either Yes or No");
         // store vote
@@ -268,7 +276,6 @@ function hasVotingPeriodExpiredFinal(uint256 _proposalIndex) public view returns
         //This function 
          address memberAddress = msg.sender;
          Vote postVote = Vote(uintVote);
-        // require(proposals[proposalIndex].votesByMember[memberAddress] == Vote.Null, "Moloch::submitVote - member has already voted on this proposal");
 
     //    Adding counts to respective Yes or No
          if (postVote == Vote.Yes) {

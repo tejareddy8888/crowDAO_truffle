@@ -30,12 +30,9 @@ class AcceptProposal extends Component {
       // example of interacting with the contract's methods.
       this.setState({ web3, accounts, contract: instance });
       //console.log("Contracts:"+contract);
-      if(accounts == "0x65a70817bebF1cF6C72eF01840Eb33d95cbd1015")   
-      {
-        this.loadAcceptanceProposals();
-        this.loadSettlementProposals();
-      }
-      else {alert("Not authorised to view the page");}
+      this.loadAcceptanceProposals();
+      this.loadSettlementProposals();
+      window.ethereum.on('accountsChanged', this.handleUpdate);  
     } catch (error) {
       // Catch any errors for any of the above operations.
       alert(
@@ -45,15 +42,15 @@ class AcceptProposal extends Component {
     }
   };
 
-  
-
 	loadAcceptanceProposals= async () => {
-    const { contract } = this.state;
+    const { web3,accounts,contract } = this.state;
 
       var passedResp;
       var fitresp;
       var i;
       var propLength;
+      var didpassResp;
+      var Abortresp;
 
       await contract.methods.getProposalCount().call().then(function(response){ propLength = response;});
 
@@ -61,10 +58,15 @@ class AcceptProposal extends Component {
 
 
       for(i=0;i<=propLength-1;i++){
+      //await contract.methods.isProposer(i).call().then(function(response){ OwnerResp = response;});
       await contract.methods.hasVotingPeriodExpired(i).call().then(function(response1){ passedResp = response1;});
       await contract.methods.getProposalByIndex(i).call().then(function(response){ fitresp = response;});
-      //console.log("passedResp: "+passedResp+"fitresp[5]: "+fitresp[5]);
-      if(passedResp == true & fitresp[5] == false & fitresp[3] > fitresp[4])
+      await contract.methods.didProposalPass(i).call().then(function(response){didpassResp = response;});
+      await contract.methods.didProposalAborted(i).call().then(function(response){ Abortresp = response;});
+      console.log("Abortresp"+Abortresp)
+      console.log("didpassResp"+didpassResp)
+      console.log("TimeExpired: "+passedResp+"didpass: "+fitresp[5]);
+      if(passedResp == true && didpassResp == false && fitresp[3] > fitresp[4] && fitresp[6] == accounts[0])
       {
         
       var newRow=document.getElementById('reviewTable').insertRow();
@@ -76,7 +78,8 @@ class AcceptProposal extends Component {
 
       cell2.appendChild(document.createTextNode(fitresp[1]));
       var cell3   = newRow.insertCell(2);
-      cell3.appendChild(document.createTextNode(fitresp[2]));
+      var amount = web3.utils.fromWei(fitresp[2], 'ether');      
+      cell3.appendChild(document.createTextNode(amount));
 
       //Accept Proposal Button
       var cell4   = newRow.insertCell(3);
@@ -95,7 +98,7 @@ class AcceptProposal extends Component {
   };
 
   loadSettlementProposals= async () => {
-    const { accounts, contract } = this.state;
+    const { web3,accounts, contract } = this.state;
 
       var passedResp;
       var FinalpassedResp;
@@ -103,11 +106,13 @@ class AcceptProposal extends Component {
       var Abortresp;
       var i;
       var propLength;
-      var fitresp;
+      var fitresp = null;
+      //var OwnerResp;
 
       await contract.methods.getProposalCount().call().then(function(response){ propLength = response;});
       console.log("loadSettlementProposals Function");
       for(i=0;i<=propLength-1;i++){
+        //await contract.methods.isProposer(i).call().then(function(response){ OwnerResp = response;});
         await contract.methods.didProposalPass(i).call().then(function(response){passedResp = response;});
         console.log("passedResp"+passedResp)
         await contract.methods.didProposalFinalPass(i).call().then(function(response){FinalpassedResp = response;});
@@ -116,7 +121,9 @@ class AcceptProposal extends Component {
         console.log("Procresp"+Procresp)
         await contract.methods.didProposalAborted(i).call().then(function(response){ Abortresp = response;});
         console.log("Abortresp"+Abortresp)
-        await contract.methods.getProposalByIndex2(i).call().then(function(response){ fitresp = response;});
+        await contract.methods.getProposalByIndex2(i).call().then(function(response1){ fitresp = response1;});
+        console.log(fitresp[6]);
+        console.log("address"+accounts[0]);
       if (passedResp == true && FinalpassedResp == false && Procresp == true && Abortresp == false && fitresp[4] > fitresp[5])
       { // change finalpass to false
           
@@ -129,7 +136,8 @@ class AcceptProposal extends Component {
       cell2.appendChild(document.createTextNode(fitresp[1]));
 
       var cell3   = newRow.insertCell(2);
-      cell3.appendChild(document.createTextNode(fitresp[2]));
+      var amount = web3.utils.fromWei(fitresp[2], 'ether');      
+      cell3.appendChild(document.createTextNode(amount));
 
       //Accept Proposal Button
       var cell4   = newRow.insertCell(3);
@@ -140,7 +148,7 @@ class AcceptProposal extends Component {
       button.value = fitresp[0];
       cell4.appendChild(button);
       }
-      else if (passedResp == true && FinalpassedResp == false && Procresp == true && Abortresp == false && fitresp[4] <= fitresp[5])
+      else if (passedResp == true && FinalpassedResp == false && Procresp == true && Abortresp == false && fitresp[4] <= fitresp[5] && fitresp[6] == accounts[0])
       { // change finalpass to false
           
       var newRow=document.getElementById('settleTable').insertRow();
@@ -148,7 +156,7 @@ class AcceptProposal extends Component {
       var cell1   = newRow.insertCell(0);
       cell1.appendChild(document.createTextNode(fitresp[0]));
       // Insert a cell in the row at cell index 1
-      var cell2   = newRow.insertCell(1);
+      var cell2   = newRow.insertCell(1);      
       cell2.appendChild(document.createTextNode(fitresp[1]));
 
       var cell3   = newRow.insertCell(2);
@@ -180,7 +188,7 @@ class AcceptProposal extends Component {
     await contract.methods.getProposalByIndex(proposal_index).call().then(function(response){ checkPassRes = response;});
     if(checkPassRes[5] == false)
       {
-        //console.log("Reached haya"+ checkPassRes[5]);
+        console.log("Reached haya"+ checkPassRes[5]);
         await contract.methods.hasProposalPassed(proposal_index).send({from: accounts[0]});
       }
       else{
@@ -190,28 +198,15 @@ class AcceptProposal extends Component {
   };
 
   settleBalance= async (event) => {
-    const { accounts, contract } = this.state;
+    const { web3, accounts, contract } = this.state;
     //var checkPassRes;
     var PassRes;
     var i = event.target.value;
     await contract.methods.getProposalByIndex(i).call().then(function(response){ PassRes = response;});
-    // await contract.methods.getProposalByIndex2(i).call().then(function(response){ checkPassRes = response;});
-    //   console.log("Yes votes : "+ checkPassRes[4]);
-    //   console.log("No votes : "+ checkPassRes[5]);
-    // //await contract.methods.hasProposalPassedFinal(proposal_index).send({from: accounts[0]});
-    //   if(checkPassRes[4] > checkPassRes[5]){ //if the proposal id passed finally
-      console.log();
-      await contract.methods.hasProposalPassedFinal(i).send({from: accounts[0]}).then(function(response){ console.log(response);});;
-      await contract.methods.Transfer(PassRes[6],PassRes[3]).send({from: accounts[0]});        
-
-      // }
-      // else if(checkPassRes[4] <= checkPassRes[5])
-      // {
-      //   console.log("updated Abort");
-      //   await contract.methods.hasProposalPassedFinal(i).send({from: accounts[0]}).then(function(response){ console.log(response);});;
-      //   await contract.methods.refundFunds(i).send({from: accounts[0]});
-        
-      // }  
+    console.log();
+    await contract.methods.hasProposalPassedFinal(i).send({from: accounts[0]}).then(function(response){ console.log(response);});;
+    //const amount = web3.utils.toWei(PassRes[3], 'ether');
+    //await contract.methods.Transfer(PassRes[6],PassRes[3]).send({from: accounts[0]});        
   }
 
   refundBalance = async (event) => {
@@ -219,7 +214,7 @@ class AcceptProposal extends Component {
     var i = event.target.value;
     console.log("Refunding Balance");
     await contract.methods.hasProposalPassedFinal(i).send({from: accounts[0]}).then(function(response){ console.log(response);});;
-    await contract.methods.refundFunds(i).send({from: accounts[0]});
+    //await contract.methods.refundFunds(i).send({from: accounts[0]});
   }
 
     
@@ -258,8 +253,7 @@ handleUpdate = async() =>{
 
 
 
-  render() { 
-    window.ethereum.on('accountsChanged', this.handleUpdate);    
+  render() {   
     return (
         <div>
           <h1>Accept Proposals</h1>

@@ -37,8 +37,9 @@ class MyProposal extends Component {
       //this.interval = setInterval(() => this.setState({ time: new Date.now() }), 5000);
     //   if(this.isProposerOnly)   {this.loadProposal();}
     //   else {alert("Not authorised to view the page");}
-    console.log("Sorry Sir, About to Load");
+    console.log("Sorry Sir, About to Load");  
     this.loadProposal();
+    window.ethereum.on('accountsChanged', this.handleUpdate); 
     } catch (error) {
       // Catch any errors for any of the above operations.
       //console.log(error);
@@ -86,7 +87,7 @@ class MyProposal extends Component {
     var passresp;
     var Procresp;
     var Abortresp;
-    const { accounts, contract } = this.state;
+    const { web3,accounts, contract } = this.state;
     //console.log("This is for testing purpose only."+ proposal_index+" : "+vote_val);
     await contract.methods.getProposalCount().call().then(function(response){ propLength = response;});
     console.log(propLength);
@@ -119,7 +120,8 @@ class MyProposal extends Component {
             cell2.appendChild(document.createTextNode(fitresp[1]));
 
             var cell3   = newRow.insertCell(2);
-            cell3.appendChild(document.createTextNode(fitresp[2]));
+            var amount = web3.utils.fromWei(fitresp[2], 'ether');
+            cell3.appendChild(document.createTextNode(amount));
 
             //Accept Proposal Button
             var cell4   = newRow.insertCell(3);
@@ -179,7 +181,6 @@ handleUpdate = async() =>{
 
 
     render() {
-      window.ethereum.on('accountsChanged', this.handleUpdate);   
         return (
             <div>
             <h1>My Proposals</h1>

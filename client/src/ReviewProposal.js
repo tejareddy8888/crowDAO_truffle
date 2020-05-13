@@ -25,6 +25,7 @@ componentDidMount = async () => {
       //console.log("instance:" + instance);
       this.setState({ web3:web3,accounts : account, contract: instance}, this.getBalance);
       this.showReviewList();
+      window.ethereum.on('accountsChanged', this.handleUpdate);  
     } catch (error) {
       // Catch any errors for any of the above operations.
       alert(
@@ -36,17 +37,17 @@ componentDidMount = async () => {
 
 
 getBalance= async () => {
-    const { accounts, contract } = this.state;
+    const { web3,accounts, contract } = this.state;
 
     // Get the value from the contract to prove it worked.
-    const response = await contract.methods.getBalance(accounts[0]).call();
-
+    var value = await contract.methods.getBalance(accounts[0]).call();
+    value = web3.utils.fromWei(value, 'ether');
     // Update state with the result.
-    this.setState({ storageValue: response });
+    this.setState({ storageValue: value });
   };
 
 showReviewList = async () => {
-    const { accounts, contract } = this.state;
+    const { web3,accounts, contract } = this.state;
     //console.log("Contract in Function:"+ contract);
 
     var respo;
@@ -77,7 +78,8 @@ showReviewList = async () => {
 
       cell2.appendChild(document.createTextNode(respo[1]));
       var cell3   = newRow.insertCell(2);
-      cell3.appendChild(document.createTextNode(respo[2]));
+      var amount = web3.utils.fromWei(respo[2], 'ether');
+      cell3.appendChild(document.createTextNode(amount));
 
       //Vote completed
       var cell4   = newRow.insertCell(3);
@@ -110,7 +112,8 @@ showReviewList = async () => {
 
   		cell2.appendChild(document.createTextNode(respo[1]));
   		var cell3   = newRow.insertCell(2);
-  		cell3.appendChild(document.createTextNode(respo[2]));
+      var amount = web3.utils.fromWei(respo[2], 'ether');
+      cell3.appendChild(document.createTextNode(amount));
 
 
       }
@@ -125,7 +128,8 @@ showReviewList = async () => {
   
         cell2.appendChild(document.createTextNode(respo[1]));
         var cell3   = newRow.insertCell(2);
-        cell3.appendChild(document.createTextNode(respo[2]));
+        var amount = web3.utils.fromWei(respo[2], 'ether');
+        cell3.appendChild(document.createTextNode(amount));
   
       }
     }     
@@ -180,7 +184,6 @@ handleUpdate = async() =>{
 
 
     render() { 
-      window.ethereum.on('accountsChanged', this.handleUpdate);  
         return (
             <div>
             	<h1>Review Proposals</h1>
