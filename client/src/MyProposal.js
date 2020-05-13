@@ -29,16 +29,24 @@ class MyProposal extends Component {
       const deployedNetwork = CrowDAO.networks[networkId];
       const instance = new web3.eth.Contract(CrowDAO.abi, deployedNetwork && deployedNetwork.address);
       console.log("instance:" + deployedNetwork);
-
+      var value = await instance.methods.getBalance(account[0]).call();
+      value = web3.utils.fromWei(value, 'ether');
       // Set web3, accounts, and contract to the state, and then proceed with an
       // example of interacting with the contract's methods.
-      this.setState({ web3: web3 ,accounts : account, contract: instance});
+      this.setState({ web3: web3 ,accounts : account, contract: instance,storageValue:value});
       //console.log("Contracts :"+this.state.contract);
       //this.interval = setInterval(() => this.setState({ time: new Date.now() }), 5000);
     //   if(this.isProposerOnly)   {this.loadProposal();}
     //   else {alert("Not authorised to view the page");}
-    console.log("Sorry Sir, About to Load");  
-    this.loadProposal();
+    if(value > 1)
+    {
+      this.loadProposal();
+    }
+    else{
+      alert(
+       'Please load money in your account and come back'
+      );
+    }
     window.ethereum.on('accountsChanged', this.handleUpdate); 
     } catch (error) {
       // Catch any errors for any of the above operations.
@@ -129,6 +137,7 @@ class MyProposal extends Component {
             button.innerHTML = 'Completed';
             button.onclick = this.Completed;
             button.id = "CompleteButton"+i;
+            button.className = "btn";
             button.value = i;
             cell4.appendChild(button);
 
@@ -139,6 +148,7 @@ class MyProposal extends Component {
             button1.innerHTML = 'Abort';
             button1.onclick = this.Aborted;
             button1.id = "AbortButton"+i;
+            button1.className = "btn";
             button1.value = i;
             center2.appendChild(button1);
             cell5.appendChild(center2);
@@ -184,15 +194,18 @@ handleUpdate = async() =>{
         return (
             <div>
             <h1>My Proposals</h1>
-            <p>Your Address {this.state.accounts}</p>
-            <div>
-            <h3> Do the needful if you have completed the proposal</h3>
+            <div class="center revprop-div">
+            <div class="lead-text">Your Account :{this.state.accounts}</div>
+            <div class="lead-text">Current Balance :{this.state.storageValue}</div>
+            <small><b>Note: Mark your progress </b> </small>
             </div>
+            <br/>
+            <br/>
             <div id= "container"> 
             <center>
                 <table id="AcceptanceTable" border= "5"   width="50%"   cellpadding="4" cellspacing="3">	
                 <tr> <th colspan="5"><h3>My Proposals List</h3></th></tr>
-                <tr><th>ID</th><th>Proposal</th><th>Proposal Value</th><th>Task Completed</th><th> Task Unfinished</th></tr>
+                <tr><th>ID</th><th>Proposal</th><th>Proposal Value</th><th>Task Completed</th><th> Task Aborted</th></tr>
                 </table>
             </center>
             </div>

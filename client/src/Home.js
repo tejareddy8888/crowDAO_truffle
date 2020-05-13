@@ -3,7 +3,6 @@ import CrowDAO from "./contracts/crowdao.json";
 import getWeb3 from "./getWeb3";
 import { Button } from 'react-bootstrap';
 import history from './history';
-
 import "./App.css";
 
 class Home extends Component {
@@ -113,9 +112,6 @@ class Home extends Component {
     }
   };
 
-  dosomething  = async () => {
-    console.log("attempted capturing message");
-  };
 
 
   render() {
@@ -124,65 +120,37 @@ class Home extends Component {
       return (<div>Loading Web3, accounts, and contract...</div>);
     } else if(this.state.storageValue >= 1)
     {
-      
       return(
       <div className="App">
-     <div class="center">
-          <h1> CROWDAO</h1>
-          <p>Your decentralized autonomous organization</p>
-      </div>
-      <div class="center">
-            <div>Account : {this.state.accounts} </div>
-            <div> Current Balance: {this.state.storageValue} ETH </div>
-            <Button class="btn" variant="btn btn-success" onClick={() => history.push('/Proposal', { account: this.state.accounts, balance : this.state.storageValue})}>Click button to view Proposal</Button>
-      </div>
+        <div class="center home-div">
+              <div class="lead-text">Account : {this.state.accounts} </div>
+              <div class="lead-text"> Current Balance: {this.state.storageValue} ether </div>
+              <br/>
+              <br/>
+              <Button class="btn" variant="btn btn-success" onClick={() => history.push('/Proposal', { account: this.state.accounts, balance : this.state.storageValue})}>View Proposals</Button>
+        </div>
     </div>
       );
     }
-    // else if(this.state.accounts == "0x65a70817bebF1cF6C72eF01840Eb33d95cbd1015")
-    // {
-    //   window.ethereum.on('accountsChanged', this.handleUpdate);
-    //   return(
-    //   <div className="App">
-    //     <h1>Welcome to CrowDAO!</h1>
-    //     <p>Your decentralized autonomous organization</p>
-    //     <p>
-    //       Special registered account, your account ID is {this.state.accounts}.
-    //     </p>
-    //     <div>The current stored value is: {this.state.storageValue}</div>
-    //     <form>
-    //       <Button variant="btn btn-success" onClick={() => history.push('/AcceptProposal', { account: this.state.accounts, balance : this.state.storageValue })}>Click button to view Proposal</Button>
-    //     </form>
-    //   </div>
-    //   );
-    // }
     else
     {
     return (
-  <div className="App">
-     <div class="center">
-          <h1> CROWDAO</h1>
-          <p>Your decentralized autonomous organization</p>
-      </div>
-      <div class="center">
-
-        <div>
-          <h2>Enter the amount to be added in your account.</h2>
-            <div>Account : {this.state.accounts} </div>
-            <div> Current Balance: {this.state.storageValue} ETH </div>
-            <br/>
-            <label for="maddr">Amount:</label>&nbsp;
-            <input class="search-box" type="text" id="mamount" name="mamount" />&nbsp;
-            <br/>
-            <br/>
-            <button class="btn" onClick={this.runSelfAdd}>  ADD AMOUNT </button>
-    <br/>
-    <br/>
-    <small> <b> Note: your account needs to have minimum 1 ETH value </b> </small>
-        </div> 
-      </div>
-  </div>
-            );
+        <div className="App">
+              <div class="center home-div">
+                  <div class="lead-text">Account : {this.state.accounts} </div>
+                  <div class="lead-text"> Current Balance: {this.state.storageValue} ETH </div>
+                  <br/>
+                  <label for="maddr">Amount:</label>&nbsp;
+                  <input class="search-box" type="text" id="mamount" name="mamount" />&nbsp;
+                  <br/>
+                  <br/>
+                  <button class="btn" onClick={this.runSelfAdd}>  ADD AMOUNT </button>
+                  <br/>
+                  <br/>
+                  <b> Note: your account needs to have minimum 1 ETH value to perfrom action</b>
+              </div> 
+        </div>
+        );
     }
   }
 

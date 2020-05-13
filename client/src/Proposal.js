@@ -30,14 +30,23 @@ class Proposal extends Component {
       const deployedNetwork = CrowDAO.networks[networkId];
       const instance = new web3.eth.Contract(CrowDAO.abi, deployedNetwork && deployedNetwork.address);
       console.log("instance:" + deployedNetwork);
-
+      var value = await instance.methods.getBalance(accounts[0]).call();
+      value = web3.utils.fromWei(value, 'ether');
       // Set web3, accounts, and contract to the state, and then proceed with an
       // example of interacting with the contract's methods.
-      this.setState({ web3, accounts, contract: instance,status:"updated" }, this.getBalance);
+      this.setState({ web3, accounts, contract: instance,status:"updated", storageValue : value});
       //console.log("Contracts :"+this.state.contract);
       //this.interval = setInterval(() => this.setState({ time: new Date.now() }), 5000);
-      this.showProposalList();
-      this.checkTheShare();
+      if(value > 1)
+      {
+        this.showProposalList();
+        this.checkTheShare();
+      }
+      else{
+        alert(
+         'Please load money in your account and come back'
+        );
+      }
       window.ethereum.on('accountsChanged', this.handleUpdate);
     } catch (error) {
       // Catch any errors for any of the above operations.
@@ -75,6 +84,7 @@ class Proposal extends Component {
       value = web3.utils.fromWei(value, 'ether');
       // Update state with the result.
       this.setState({ storageValue: value });
+      return value;
     };
 
 addProposalFunc = async () => {
@@ -148,7 +158,7 @@ showProposalList = async () => {
   		var button = document.createElement('button');
   		button.innerHTML = 'Yes';
   		button.onclick = this.voteAdd;
-  		//button.id = "yesbutton";
+  		button.className = "btn";
   		button.value = Proprespo[0];
   		cell4.appendChild(button);
 
@@ -159,7 +169,7 @@ showProposalList = async () => {
   		var button = document.createElement('button');
   		button.innerHTML = 'No';
   		button.onclick = this.voteAdd;
-  		//button.id = "nobutton";
+  		button.className = "btn";
   		button.value = Proprespo[0];
   		cell5.appendChild(button);
       }
@@ -264,26 +274,28 @@ handleUpdate = async() =>{
     render() {
       console.log("In Render()");
         return (
-            <div>
-            	<h1>Create Proposal</h1>
+          <div className="App">
+          <div class="center prop-div">
                 <p>Your Account {this.state.accounts} have {this.state.storageValue} ETH balance</p>
-            <div>
-                	<h3>Create Proposal with the following details</h3>
-                	<label for="propname">Enter the proposal:</label>&nbsp;
-            		<input type="text" id="proptext" name="proptext" /><br />
+            <div class="prop-sm-div">
+                <div class="lead-text">Create Proposal with the following details</div>
+                <label for="propname">Enter the proposal:</label>&emsp;&emsp;&emsp;
+            		<input class="search-box-prop" type="text" id="proptext" name="proptext" />
+                <br />
             		<label for="propvalue">Enter the proposal value:</label>&nbsp;
-            		<input type="text" id="propval" name="propval" /><br />
-            		<button class= "btn" onClick={this.addProposalFunc}> Create Proposal </button>
-                <Button variant="btn btn-success" onClick={() => history.push('/ReviewProposal', { account: this.state.accounts})}>Vote Completed Proposals</Button>
+            		<input class="search-box-prop"  type="text" id="propval" name="propval" />
+                <br />
+                <br/>
+            		<button class= "btn" onClick={this.addProposalFunc}> Submit</button>
+                {/* <Button variant="btn btn-success" onClick={() => history.push('/ReviewProposal', { account: this.state.accounts})}>Vote Completed Proposals</Button>
                 <Button variant="btn btn-success" onClick={() => history.push('/MyProposal', { account: this.state.accounts})}>MyProposals</Button>
-                <Button variant="btn btn-success" onClick={() => history.push('/AcceptProposal', { account: this.state.accounts})}>ProcessMyProposal</Button>
+                <Button variant="btn btn-success" onClick={() => history.push('/AcceptProposal', { account: this.state.accounts})}>ProcessMyProposal</Button> */}
             </div>
             <br/>
             <br/>
             <br/>
-            <center>
                 <div id= "container">
-                	<table id="myTable" border= "5"   width="50%"   cellpadding="4" cellspacing="3">	
+                	<table class = "table" id="myTable">	
                 	<tr> <th colspan="5"><h3>Proposal List</h3></th></tr>
                 	<tr><th>ID</th><th>Proposal</th><th>Proposal Value</th><th>Vote(Yes)</th><th>Vote(No)</th></tr>
                 	</table>
@@ -292,7 +304,7 @@ handleUpdate = async() =>{
                 <br/>
                 <br/>
                 <div id= "passProposal"> 
-                  <table id="passTable" border= "5"   width="50%"   cellpadding="4" cellspacing="3">  
+                  <table class="table" id="passTable" >  
                   <tr> <th colspan="5"><h3>Passed Proposal</h3></th></tr>
                   <tr><th>ID</th><th>Proposal</th><th>Proposal Value</th></tr>
 
@@ -302,14 +314,14 @@ handleUpdate = async() =>{
                 <br/>
                 <br/>                
                 <div id= "failedProposal"> 
-                  <table id="failedTable" border= "5"   width="50%"   cellpadding="4" cellspacing="3">  
+                  <table  class="table" id="failedTable" >  
                   <tr> <th colspan="5"><h3>Failed Proposal</h3></th></tr>
                   <tr><th>ID</th><th>Proposal</th><th>Proposal Value</th></tr>
 
                   </table>
                 </div>
-              </center>
-			</div>
+			    </div>
+          </div>
         );
     }
 }

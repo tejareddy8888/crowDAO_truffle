@@ -23,8 +23,18 @@ componentDidMount = async () => {
       const deployedNetwork = CrowDAO.networks[networkId];
       const instance = new web3.eth.Contract(CrowDAO.abi, deployedNetwork && deployedNetwork.address);
       //console.log("instance:" + instance);
-      this.setState({ web3:web3,accounts : account, contract: instance}, this.getBalance);
+      var value = await instance.methods.getBalance(account[0]).call();
+      value = web3.utils.fromWei(value, 'ether');
+      this.setState({ web3:web3,accounts : account, contract: instance,storageValue: value});
+      if(value > 1)
+      {
       this.showReviewList();
+      }
+      else{
+        alert(
+         'Please load money in your account and come back'
+        );
+      }
       window.ethereum.on('accountsChanged', this.handleUpdate);  
     } catch (error) {
       // Catch any errors for any of the above operations.
@@ -186,11 +196,15 @@ handleUpdate = async() =>{
     render() { 
         return (
             <div>
-            	<h1>Review Proposals</h1>
-                <p>Your Account {this.state.accounts} have {this.state.storageValue} ETH balance</p>
+              <div class="center revprop-div">
+                <div class="lead-text">Account : {this.state.accounts} </div>
+                <div class="lead-text">Current balance : {this.state.storageValue} ether</div>
                 <div>
-                <h3>Review the proposal with the following details. And vote for the final confirmation of completion of the respective proposals.</h3>
+                <small><b>Note: Review the proposal nd vote for the final confirmation of completion of the respective proposals.</b></small>
                 </div>
+              </div>
+              <br/>
+              <br/>
                 <center>
                 <div id= "container"> 
                 	<table id="reviewTable" border= "5"   width="50%"   cellpadding="4" cellspacing="3">	

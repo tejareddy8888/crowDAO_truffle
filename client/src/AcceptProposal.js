@@ -7,7 +7,7 @@ import history from './history';
 class AcceptProposal extends Component {
 
 	//state = { accounts: null , contract: null, storageValue: 0 };
-	state = { web3: null, accounts: null, contract: null };
+	state = { storageValue: 0, web3: null, accounts: null, contract: null };
 
   componentDidMount = async () => {
     try {
@@ -25,13 +25,22 @@ class AcceptProposal extends Component {
       const deployedNetwork = CrowDAO.networks[networkId];
       const instance = new web3.eth.Contract(CrowDAO.abi, deployedNetwork && deployedNetwork.address);
       //console.log("instance:" + deployedNetwork.address);
-
+      var value = await instance.methods.getBalance(accounts[0]).call();
+      value = web3.utils.fromWei(value, 'ether');
       // Set web3, accounts, and contract to the state, and then proceed with an
       // example of interacting with the contract's methods.
-      this.setState({ web3, accounts, contract: instance });
+      this.setState({ web3, accounts, contract: instance ,storageValue: value });
       //console.log("Contracts:"+contract);
+      if(value > 1)
+      {
       this.loadAcceptanceProposals();
       this.loadSettlementProposals();
+      }
+      else{
+        alert(
+         'Please load money in your account and come back'
+        );
+      }
       window.ethereum.on('accountsChanged', this.handleUpdate);  
     } catch (error) {
       // Catch any errors for any of the above operations.
@@ -84,9 +93,10 @@ class AcceptProposal extends Component {
       //Accept Proposal Button
       var cell4   = newRow.insertCell(3);
       var button = document.createElement('button');
-      button.innerHTML = 'Accept Proposal';
+      button.innerHTML = 'Block Fund';
       button.onclick = this.acceptProposal;
       button.id = "acceptProposalButton"+i;
+      button.className = "btn";
       button.value = i;
       cell4.appendChild(button);
       //if(fitresp[5] == true){document.getElementById("acceptProposalButton"+i).disabled = true;}
@@ -144,6 +154,7 @@ class AcceptProposal extends Component {
       var button = document.createElement('button');
       button.innerHTML = 'Settle Balance';
       button.onclick = this.settleBalance;
+      button.className = "btn";
       button.id = "SettleProposalBalance"+i;
       button.value = fitresp[0];
       cell4.appendChild(button);
@@ -168,6 +179,7 @@ class AcceptProposal extends Component {
       var button = document.createElement('button');
       button.innerHTML = 'Refund';
       button.onclick = this.refundBalance;
+      button.className = "btn";
       button.id = "refundButton"+i;
       button.value = fitresp[0];
       center2.appendChild(button)
@@ -256,16 +268,18 @@ handleUpdate = async() =>{
   render() {   
     return (
         <div>
-          <h1>Accept Proposals</h1>
-            <p>Your Special Account {this.state.accounts}</p>
-            <div>
-            <h3>Review the proposal with the following details</h3>
+            <div class="center revprop-div">
+                <div class="lead-text">Account : {this.state.accounts} </div>
+                <div class="lead-text">Current balance : {this.state.storageValue} ether</div>
+                <small><b>Note: Get funded / Block the fund for the proposals</b></small>
             </div>
+            <br/>
+            <br/>
             <div id= "container"> 
             <center>
               <table id="reviewTable" border= "5"   width="50%"   cellpadding="4" cellspacing="3">	
-              <tr> <th colspan="5"><h3>Review Proposal List</h3></th></tr>
-              <tr><th>ID</th><th>Proposal</th><th>Proposal Value</th><th>Accept the Proposal</th></tr>
+              <tr> <th colspan="5"><h3>Fund Blocking Proposals' List</h3></th></tr>
+              <tr><th>ID</th><th>Proposal</th><th>Proposal Value</th><th>Block the Fund</th></tr>
               </table>
             </center>
             <br/>
@@ -273,7 +287,7 @@ handleUpdate = async() =>{
             <br/>
             <center>
               <table id="settleTable" border= "5"   width="50%"   cellpadding="4" cellspacing="3">  
-              <tr> <th colspan="5"><h3>Settle Proposal List</h3></th></tr>
+              <tr> <th colspan="5"><h3>Balance Settling Proposals' List</h3></th></tr>
               <tr><th>ID</th><th>Proposal</th><th>Proposal Value</th><th>Settle the Proposal</th></tr>
               </table>
             </center>
