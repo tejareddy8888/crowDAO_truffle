@@ -30,6 +30,7 @@ class Home extends Component {
       // example of interacting with the contract's methods.
       this.setState({ web3, accounts, contract: instance }, this.getBalance);
       //console.log("Contracts:"+contract);
+      this.Balanceofchairman();
     } catch (error) {
       // Catch any errors for any of the above operations.
       alert(
@@ -126,16 +127,16 @@ class Home extends Component {
       
       return(
       <div className="App">
-        <h1>Welcome to CrowDAO!</h1>
-        <p>Your decentralized autonomous organization</p>
-        <p>
-          Successfully registered, your account ID is {this.state.accounts}.
-        </p>
-        <div>The current stored value is: {this.state.storageValue}</div>
-        <form>
-          <Button class="btn" variant="btn btn-success" onClick={() => history.push('/Proposal', { account: this.state.accounts, balance : this.state.storageValue})}>Click button to view Proposal</Button>
-        </form>
+     <div class="center">
+          <h1> CROWDAO</h1>
+          <p>Your decentralized autonomous organization</p>
       </div>
+      <div class="center">
+            <div>Account : {this.state.accounts} </div>
+            <div> Current Balance: {this.state.storageValue} ETH </div>
+            <Button class="btn" variant="btn btn-success" onClick={() => history.push('/Proposal', { account: this.state.accounts, balance : this.state.storageValue})}>Click button to view Proposal</Button>
+      </div>
+    </div>
       );
     }
     // else if(this.state.accounts == "0x65a70817bebF1cF6C72eF01840Eb33d95cbd1015")

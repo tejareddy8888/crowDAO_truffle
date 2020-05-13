@@ -189,7 +189,7 @@ class AcceptProposal extends Component {
     if(checkPassRes[5] == false)
       {
         console.log("Reached haya"+ checkPassRes[5]);
-        await contract.methods.hasProposalPassed(proposal_index).send({from: accounts[0]});
+        await contract.methods.hasProposalPassed(proposal_index).send({from: accounts[0]}).then(function(response){ console.log(response)});;
       }
       else{
         alert(`Contract has been accepted already`);
