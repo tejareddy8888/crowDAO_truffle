@@ -21,7 +21,7 @@ For Execution :
 3) If error occurs while executing run.sh at 'yarn' statement. 
 	Again go to Client folder , run "npm start"
 
-4) You have a browser instance is launched and you code is running on Localhost:3000
+4) You have a browser instance is launched and code is running on Localhost:3000
 
 
 
