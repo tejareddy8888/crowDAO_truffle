@@ -96,7 +96,7 @@ showReviewList = async () => {
       var button = document.createElement('button');
       button.innerHTML = 'Yes';
       button.onclick = this.voteAdd;
-      //button.id = "yesbutton";
+      button.className = "btn";
       button.value = respo[0];
       cell4.appendChild(button);
 
@@ -105,7 +105,7 @@ showReviewList = async () => {
       var button = document.createElement('button');
       button.innerHTML = 'No';
       button.onclick = this.voteAdd;
-      //button.id = "yesbutton";
+      button.className = "btn";
       button.value = respo[0];
       cell4.appendChild(button);
 

@@ -60,7 +60,7 @@ constructor() public {
                 uint256 value =  ComputeTotalShare(_proposalIndex);
                 uint256 len = proposals[_proposalIndex].votedMembers.length;
                 if(len > 0){
-                    for (uint i=0; i<len-1; i++) {
+                    for (uint i=0; i<=len-1; i++) {
                         if(accounts[proposals[_proposalIndex].votedMembers[i]].balance >= value) {
                         //accounts[chairperson].balance += value;
                         accounts[proposals[_proposalIndex].votedMembers[i]].balance -= value;
@@ -79,7 +79,7 @@ constructor() public {
             uint256 value = ComputeTotalShare(proposalIndex);
             uint256 len = proposals[proposalIndex].votedMembers.length;
                 if(len > 0){
-                    for (uint i=0; i<len-1; i++) {
+                    for (uint i=0; i<=len-1; i++) {
                         if(accounts[chairperson].balance >= value) {
                         //accounts[chairperson].balance -= value;
                         accounts[proposals[proposalIndex].votedMembers[i]].balance += value;
