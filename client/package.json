@@ -18,7 +18,7 @@
     "immutable": "^4.0.0-rc.12",
     "redux-devtools-extension": "^2.13.8",
     "redux-thunk": "^2.3.0",
-    "web3": "1.2.2"
+    "web3": "4.16.0"
   },
   "scripts": {
     "start": "react-scripts start",
